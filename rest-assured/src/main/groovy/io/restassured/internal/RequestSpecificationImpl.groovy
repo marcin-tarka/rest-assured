@@ -102,6 +102,7 @@ class RequestSpecificationImpl implements FilterableRequestSpecification, Groovy
   private int port
   private Map<String, String> requestParameters = new LinkedHashMap()
   private Map<String, String> queryParameters = new LinkedHashMap()
+  private Map<String, String> matrixParameters = new LinkedHashMap()
   private Map<String, String> formParameters = new LinkedHashMap()
   private Map<String, String> namedPathParameters = [:]
   private Map<String, String> httpClientParams = [:]
@@ -584,6 +585,31 @@ class RequestSpecificationImpl implements FilterableRequestSpecification, Groovy
 
   def RequestSpecification pathParams(Map parameterNameValuePairs) {
     return pathParameters(parameterNameValuePairs)
+  }
+
+  RequestSpecification matrixParams(String firstParameterName, Object firstParameterValue, Object... parameterNameValuePairs) {
+    notNull firstParameterName, "firstParameterName"
+    notNull firstParameterValue, "firstParameterValue"
+    return matrixParams(MapCreator.createMapFromParams(CollisionStrategy.OVERWRITE, firstParameterName, firstParameterValue, parameterNameValuePairs))
+  }
+
+  RequestSpecification matrixParams(Map<String, ?> parametersMap) {
+    notNull parametersMap, "parametersMap"
+    parameterUpdater.updateParameters(restAssuredConfig().paramConfig.queryParamsUpdateStrategy(), parametersMap, matrixParameters)
+    return this
+  }
+
+  RequestSpecification matrixParam(String parameterName, Object... parameterValues) {
+    notNull parameterName, "parameterName"
+    parameterUpdater.updateZeroToManyParameters(restAssuredConfig().paramConfig.queryParamsUpdateStrategy(), matrixParameters, parameterName, parameterValues)
+    return this
+  }
+
+  RequestSpecification matrixParam(String parameterName, Collection<?> parameterValues) {
+    notNull parameterName, "parameterName"
+    notNull parameterValues, "parameterValues"
+    parameterUpdater.updateCollectionParameter(restAssuredConfig().getParamConfig().queryParamsUpdateStrategy(), matrixParameters, parameterName, parameterValues)
+    return this
   }
 
   def FilterableRequestSpecification removePathParam(String parameterName) {
@@ -1205,6 +1231,10 @@ class RequestSpecificationImpl implements FilterableRequestSpecification, Groovy
 
     if (!allQueryParams.isEmpty()) {
       uriBuilder.addQueryParams(allQueryParams)
+    }
+
+    if (!matrixParameters.isEmpty()) {
+      uriBuilder.addMatrixParams(matrixParameters)
     }
 
     def requestUriForLogging = uriBuilder.toString()

@@ -318,6 +318,11 @@ public class URIBuilder implements Cloneable {
         return this;
     }
 
+    public URIBuilder addMatrixParams(Map<?, ?> params) throws URISyntaxException {
+        //TODO
+        return null;
+    }
+
     /**
      * The document fragment, without a preceeding '#'
      *

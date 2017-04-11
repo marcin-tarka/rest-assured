@@ -1109,6 +1109,51 @@ public interface RequestSpecification extends RequestSender {
     RequestSpecification pathParams(Map<String, ?> parameterNameValuePairs);
 
     /**
+     * Specify the matrix parameters that'll be sent with the request.
+     *
+     * @param firstParameterName      The name of the first parameter
+     * @param firstParameterValue     The value of the first parameter
+     * @param parameterNameValuePairs The value of the first parameter followed by additional parameters in name-value pairs.
+     * @return The request specification
+     * @see #queryParameters(String, Object, Object...)
+     */
+    RequestSpecification matrixParams(String firstParameterName, Object firstParameterValue, Object... parameterNameValuePairs);
+
+    /**
+     * Specify the query parameters that'll be sent with the request.
+     *
+     * @param parametersMap The Map containing the parameter names and their values to send with the request.
+     * @return The request specification
+     */
+    RequestSpecification matrixParams(Map<String, ?> parametersMap);
+
+    /**
+     * Specify a query parameter that'll be sent with the request.
+     *
+     * @param parameterName   The parameter name
+     * @param parameterValues Zero to many parameter values. Use additional parameter values if you want to specify multiple values for the same parameter
+     * @return The request specification
+     * @see #param(String, Object...)
+     */
+    RequestSpecification matrixParam(String parameterName, Object... parameterValues);
+
+    /**
+     * Specify a multi-value query parameter that'll be sent with the request e.g:
+     * <p>
+     * <pre>
+     * given().matrixParam("cars", asList("Volvo", "Saab"))..;
+     * </pre>
+     * This will set the parameter <code>cars=Volvo</code> and <code>cars=Saab</code>.
+     * </p>
+     * <p/>
+     *
+     * @param parameterName   The parameter name
+     * @param parameterValues The parameter values
+     * @return The request specification
+     */
+    RequestSpecification matrixParam(String parameterName, Collection<?> parameterValues);
+
+    /**
      * Define a REST Assured configuration. E.g.
      * <pre>
      * given().config(config().redirect(redirectConfig().followRedirects(true).and().maxRedirects(0))). ..
