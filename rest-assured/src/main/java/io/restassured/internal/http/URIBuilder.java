@@ -340,9 +340,19 @@ public class URIBuilder implements Cloneable {
     }
 
     /**
-     * TODO komentarz
-     * @param params
-     * @return
+     * Add these parameters to the URIBuilder's existing matrix string.
+     * Parameters may be passed either as a single map argument, or as a list
+     * of named arguments.  e.g.
+     * <pre> uriBuilder.addMatrixParams( [one:1,two:2] )
+     * uriBuilder.addMatrixParams( three : 3 ) </pre>
+     * <p/>
+     * If any of the parameters already exist in the URI matrix, these values
+     * will <strong>not</strong> replace them.  Multiple values for the same
+     * matrix parameter may be added by putting them in a list. See
+     * {@link #setMatrix(Map)}.
+     *
+     * @param params parameters to add to the existing URI matrix (if any).
+     * @return this URIBuilder instance, for method chaining.
      * @throws URISyntaxException
      */
     @SuppressWarnings("unchecked")
