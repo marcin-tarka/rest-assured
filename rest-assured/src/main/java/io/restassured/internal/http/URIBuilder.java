@@ -55,7 +55,8 @@ import static io.restassured.config.EncoderConfig.encoderConfig;
  * @author Johan Haleby
  */
 public class URIBuilder implements Cloneable {
-    private static final String PARAMETER_SEPARATOR = "&";
+    private static final String QUERY_PARAMETER_SEPARATOR = "&";
+    private static final String MATRIX_PARAMETER_SEPARATOR = ";";
     private static final String NAME_VALUE_SEPARATOR = "=";
     private static final String PLUS = "+";
     private static final String PERCENTAGE_20 = "%20";
@@ -168,7 +169,20 @@ public class URIBuilder implements Cloneable {
         String path = base.getRawPath();
         if (path != null) sb.append(path);
         sb.append('?');
-        sb.append(format(nvp, isUrlEncodingEnabled, enc));
+        sb.append(format(nvp, isUrlEncodingEnabled, enc, QUERY_PARAMETER_SEPARATOR));
+        String frag = base.getRawFragment();
+        if (frag != null) sb.append('#').append(frag);
+        this.base = base.resolve(sb.toString());
+
+        return this;
+    }
+
+    protected URIBuilder setMatrixNVP(List<NameValuePair> nvp) throws URISyntaxException {
+        StringBuilder sb = new StringBuilder();
+        String path = base.getRawPath();
+        if (path != null) sb.append(path);
+        sb.append(MATRIX_PARAMETER_SEPARATOR);
+        sb.append(format(nvp, isUrlEncodingEnabled, enc, MATRIX_PARAMETER_SEPARATOR));
         String frag = base.getRawFragment();
         if (frag != null) sb.append('#').append(frag);
         this.base = base.resolve(sb.toString());
@@ -288,6 +302,13 @@ public class URIBuilder implements Cloneable {
         return this;
     }
 
+    protected URIBuilder addMatrixParams(List<NameValuePair> nvp) throws URISyntaxException {
+        List<NameValuePair> params = getQueryNVP();
+        params.addAll(nvp);
+        this.setMatrixNVP(params);
+        return this;
+    }
+
     /**
      * Add these parameters to the URIBuilder's existing query string.
      * Parameters may be passed either as a single map argument, or as a list
@@ -318,9 +339,24 @@ public class URIBuilder implements Cloneable {
         return this;
     }
 
+    /**
+     * TODO komentarz
+     * @param params
+     * @return
+     * @throws URISyntaxException
+     */
+    @SuppressWarnings("unchecked")
     public URIBuilder addMatrixParams(Map<?, ?> params) throws URISyntaxException {
-        //TODO
-        return null;
+        List<NameValuePair> nvp = new ArrayList<NameValuePair>();
+        for (Object key : params.keySet()) {
+            Object value = params.get(key);
+            if (value instanceof List) {
+                for (Object val : (List) value)
+                    nvp.add(new BasicNameValuePairWithNoValueSupport(key.toString(), val));
+            } else nvp.add(new BasicNameValuePairWithNoValueSupport(key.toString(), value));
+        }
+        this.addMatrixParams(nvp);
+        return this;
     }
 
     /**
@@ -411,15 +447,17 @@ public class URIBuilder implements Cloneable {
      *
      * @param parameters The parameters to include.
      * @param encoding   The encoding to use.
+     * @param parameterSeparator The string which separates key-value pair.
      */
     private static String format(
             final List<? extends NameValuePair> parameters,
             final boolean isUrlEncodingEnabled,
-            final String encoding) {
+            final String encoding,
+            final String parameterSeparator) {
         final StringBuilder result = new StringBuilder();
         for (final NameValuePair parameter : parameters) {
             if (result.length() > 0)
-                result.append(PARAMETER_SEPARATOR);
+                result.append(parameterSeparator);
             final String encodedName = isUrlEncodingEnabled ? encode(parameter.getName(), encoding) : parameter.getName();
             result.append(encodedName);
             if (hasValue(parameter)) {
@@ -467,7 +505,7 @@ public class URIBuilder implements Cloneable {
         final String query = uri.getRawQuery();
         if (query != null && query.length() > 0) {
             final Scanner scanner = new Scanner(query);
-            scanner.useDelimiter(PARAMETER_SEPARATOR);
+            scanner.useDelimiter(QUERY_PARAMETER_SEPARATOR);
             while (scanner.hasNext()) {
                 String name;
                 String value = null;
