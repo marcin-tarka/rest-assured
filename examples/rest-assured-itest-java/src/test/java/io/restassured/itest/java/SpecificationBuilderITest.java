@@ -351,6 +351,8 @@ public class SpecificationBuilderITest extends WithJetty {
                get("/{firstName}/{lastName}");
     }
 
+    //TODO tests for matrixParam
+
     @Test
     public void supportsSettingLoggingWhenUsingRequestSpecBuilder() throws Exception {
         final StringWriter writer = new StringWriter();
